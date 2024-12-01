@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:notes_app_supabase/data/service/auth_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -11,7 +11,7 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final SupabaseClient supabase = Supabase.instance.client;
+  final AuthService authServices = AuthService();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
@@ -28,15 +28,11 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  Future<void> signUp() async {
-    final email = emailController.text;
-    final password = passwordController.text;
-    final username = usernameController.text;
-
+  Future<void> handleSignUp() async {
     if (_profileImage == null ||
-        email.isEmpty ||
-        password.isEmpty ||
-        username.isEmpty) {
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        usernameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Please fill all fields and select an image')),
@@ -44,31 +40,18 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    try {
-      final response =
-          await supabase.auth.signUp(email: email, password: password);
-      final user = response.user;
+    final error = await authServices.signUp(
+      email: emailController.text,
+      password: passwordController.text,
+      username: usernameController.text,
+      profileImage: _profileImage!,
+    );
 
-      if (user != null) {
-        // Upload the profile image
-        final imagePath = 'profile_images/${user.id}.jpg';
-        await supabase.storage
-            .from('avatars')
-            .upload(imagePath, _profileImage!);
-
-        // Update user's metadata
-        await supabase.from('profiles').insert({
-          'id': user.id,
-          'username': username,
-          'avatar_url':
-              supabase.storage.from('avatars').getPublicUrl(imagePath),
-        });
-
-        Navigator.pop(context);
-      }
-    } catch (e) {
+    if (error == null) {
+      Navigator.pop(context);
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(error)),
       );
     }
   }
@@ -108,7 +91,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: signUp,
+              onPressed: handleSignUp,
               child: const Text('Sign Up'),
             ),
           ],

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app_supabase/notes_view.dart';
-import 'package:notes_app_supabase/sign_up_view.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:notes_app_supabase/data/service/auth_service.dart';
+import 'notes_view.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -11,27 +10,24 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final SupabaseClient supabase = Supabase.instance.client;
+  final AuthService authServices = AuthService();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  Future<void> signIn() async {
-    final email = emailController.text;
-    final password = passwordController.text;
+  Future<void> handleSignIn() async {
+    final error = await authServices.signIn(
+      email: emailController.text,
+      password: passwordController.text,
+    );
 
-    try {
-      final response = await supabase.auth
-          .signInWithPassword(email: email, password: password);
-
-      if (response.user != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const NotesPage()),
-        );
-      }
-    } catch (e) {
+    if (error == null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const NotesPage()),
+      );
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(error)),
       );
     }
   }
@@ -55,14 +51,11 @@ class _SignInPageState extends State<SignInPage> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: signIn,
+              onPressed: handleSignIn,
               child: const Text('Sign In'),
             ),
             TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SignUpPage()),
-              ),
+              onPressed: () => Navigator.pushNamed(context, '/signUp'),
               child: const Text('Don\'t have an account? Sign Up'),
             ),
           ],
