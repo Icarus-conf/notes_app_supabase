@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app_supabase/data/service/note_service.dart';
+import 'package:notes_app_supabase/sign_in_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotesPage extends StatefulWidget {
@@ -187,7 +188,11 @@ class _NotesPageState extends State<NotesPage> {
             ),
             onPressed: () async {
               await supabase.auth.signOut();
-              Navigator.pushReplacementNamed(context, '/signIn');
+              Navigator.pushReplacement(context, MaterialPageRoute(
+                builder: (context) {
+                  return const SignInPage();
+                },
+              ));
             },
           ),
         ],

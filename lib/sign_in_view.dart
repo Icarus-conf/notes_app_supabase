@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app_supabase/data/service/auth_service.dart';
+import 'package:notes_app_supabase/sign_up_view.dart';
 import 'notes_view.dart';
 
 class SignInPage extends StatefulWidget {
@@ -55,7 +56,11 @@ class _SignInPageState extends State<SignInPage> {
               child: const Text('Sign In'),
             ),
             TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/signUp'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (context) {
+                  return const SignUpPage();
+                },
+              )),
               child: const Text('Don\'t have an account? Sign Up'),
             ),
           ],
